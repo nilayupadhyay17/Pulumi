@@ -14,9 +14,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Set up Pulumi (Install Pulumi)
-      - name: Set up Pulumi
-        uses: pulumi/action-install-pulumi@v2
+      - name: Install Pulumi CLI
+        uses: pulumi/actions@v4
+        with:
+         pulumi-version: latest
 
       # Set up AWS credentials using OIDC
       - name: Configure AWS credentials (OIDC)
