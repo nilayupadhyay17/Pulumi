@@ -11,7 +11,7 @@ const bucket = new aws.s3.Bucket("upadhyay-site", {
 // Upload the index.html file to the bucket
 new aws.s3.BucketObject("index", {
     bucket: bucket,
-    content: "<html><h1>Hello from Pulumi!</h1></html>",
+    content: "<html><h1>Hello, Nilay from Pulumi!</h1></html>",
     key: "index.html",
     contentType: "text/html",
 });
