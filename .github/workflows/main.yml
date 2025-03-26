@@ -42,7 +42,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Select Pulumi Stack
-        run: pulumi stack select dev--non-interactive
+        run: pulumi stack select dev
 
       # Deploy with Pulumi
       - name: Deploy resources using Pulumi
