@@ -21,10 +21,11 @@ jobs:
 
       # Set up AWS credentials using OIDC
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           web-identity-token-file: ${{ secrets.AWS_WEB_IDENTITY_TOKEN_FILE }}
+          aws-region: us-east-1
           role-session-name: GitHubActionsSession
 
       # Install dependencies (e.g., if using TypeScript, npm install)
