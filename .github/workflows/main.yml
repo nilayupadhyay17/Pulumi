@@ -1,0 +1,37 @@
+name: Pulumi Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Set up Pulumi (Install Pulumi)
+      - name: Set up Pulumi
+        uses: pulumi/action-install-pulumi@v2
+
+      # Set up AWS credentials using OIDC
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          web-identity-token-file: ${{ secrets.AWS_WEB_IDENTITY_TOKEN_FILE }}
+          role-session-name: GitHubActionsSession
+
+      # Install dependencies (e.g., if using TypeScript, npm install)
+      - name: Install dependencies
+        run: npm install
+
+      # Deploy with Pulumi
+      - name: Deploy resources using Pulumi
+        run: pulumi up --yes
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
