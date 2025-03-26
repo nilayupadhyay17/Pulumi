@@ -1,21 +1,14 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 
-const provider = new aws.Provider("aws", {
-  assumeRole: {
-      roleArn: "arn:aws:iam::539247466856:role/pulumi-l8-esc-oidc-role",
-      webIdentityToken: process.env.AWS_WEB_IDENTITY_TOKEN_FILE, // OIDC token path
-      sessionName: "pulumi-session",
-  }
+// Create the S3 bucket with website configuration
+const bucket = new aws.s3.Bucket("upadhyay-site", {
+    website: {
+        indexDocument: "index.html",
+    },
 });
-// Create the S3 bucket with website configuration and private ACL
-const bucket = new aws.s3.Bucket("my-static-site", {
-  website: {
-      indexDocument: "index.html",
-  },
-  acl: "private", // Add the private ACL
-}, { provider }); // Pass the provider for custom configuration
 
+// Upload the index.html file to the bucket
 new aws.s3.BucketObject("index", {
     bucket: bucket,
     content: "<html><h1>Hello from Pulumi!</h1></html>",
@@ -23,8 +16,37 @@ new aws.s3.BucketObject("index", {
     contentType: "text/html",
 });
 
+// Create a public access block (so CloudFront can access the files)
+new aws.s3.BucketPublicAccessBlock("bucket-public-access-block", {
+    bucket: bucket.id,
+    blockPublicAcls: false,
+    ignorePublicAcls: false,
+    blockPublicPolicy: false,
+    restrictPublicBuckets: false,
+});
+
+// Apply a public read-only bucket policy
+new aws.s3.BucketPolicy("bucket-policy", {
+    bucket: bucket.id,
+    policy: bucket.id.apply(bucketId => JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+            {
+                Effect: "Allow",
+                Principal: "*",
+                Action: "s3:GetObject",
+                Resource: `arn:aws:s3:::${bucketId}/*`,
+            },
+        ],
+    })),
+});
+
+// Create the CloudFront distribution
 const cdn = new aws.cloudfront.Distribution("cdn", {
-    origins: [{ domainName: bucket.bucketRegionalDomainName, originId: bucket.arn }],
+    origins: [{
+        domainName: bucket.bucketRegionalDomainName,
+        originId: bucket.arn,
+    }],
     enabled: true,
     defaultRootObject: "index.html",
     defaultCacheBehavior: {
@@ -34,17 +56,16 @@ const cdn = new aws.cloudfront.Distribution("cdn", {
         targetOriginId: bucket.arn,
         forwardedValues: { queryString: false, cookies: { forward: "none" } },
     },
-    // Add the missing `restrictions` property
     restrictions: {
-      geoRestriction: {
-          restrictionType: "none",
-      },
-  },
-  // Add the missing `viewerCertificate` property
-  viewerCertificate: {
-      cloudfrontDefaultCertificate: true,
-  },
+        geoRestriction: {
+            restrictionType: "none",
+        },
+    },
+    viewerCertificate: {
+        cloudfrontDefaultCertificate: true,
+    },
 });
 
+// Export the S3 bucket name and CloudFront URL
 export const bucketName = bucket.bucket;
 export const cloudFrontUrl = cdn.domainName;
