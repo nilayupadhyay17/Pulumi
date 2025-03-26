@@ -33,7 +33,11 @@ jobs:
       
       - name: Verify AWS Identity
         run: aws sts get-caller-identity
-
+     
+      - name: Set up Pulumi Access Token
+        run: |
+          echo "PULUMI_ACCESS_TOKEN=${{ secrets.PULUMI_ACCESS_TOKEN }}" >> $GITHUB_ENV    
+     
       # Install dependencies (e.g., if using TypeScript, npm install)
       - name: Install dependencies
         run: npm install
