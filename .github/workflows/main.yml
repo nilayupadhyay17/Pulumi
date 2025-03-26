@@ -30,12 +30,16 @@ jobs:
           web-identity-token-file: ${{ secrets.AWS_WEB_IDENTITY_TOKEN_FILE }}
           aws-region: us-east-1
           role-session-name: GitHubActionsSession
+      
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
 
       # Install dependencies (e.g., if using TypeScript, npm install)
       - name: Install dependencies
         run: npm install
       - name: Select Pulumi Stack
         run: pulumi stack select dev--non-interactive
+
       # Deploy with Pulumi
       - name: Deploy resources using Pulumi
         run: pulumi up --yes
