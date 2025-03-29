@@ -1,10 +1,12 @@
 name: Pulumi Destroy
 
 on:
-  workflow_dispatch:  # This allows you to manually trigger the destroy process
-  pull_request:
+  push:
     branches:
-      - main  # Optional: Destroy when a PR is merged to main
+      - main
+permissions:
+  id-token: write  # Required for OIDC authentication
+  contents: read   # Required to read repository contents
 
 jobs:
   destroy:
